@@ -1,4 +1,4 @@
-== IFC Geometry Paradigms
+== IFC geometrical concepts
 
 IFC is a standard with a rich set of geometric primitives, with core concepts defined in the geometry, presentation, material, topology and profile resource subschemas. But also outside of these modules, there are various concepts that have geometrical implications such as openings and space boundary relationships in the productextension subschema. This listing below tries to provide a comprehensive overview broken down per the categories below:
 
@@ -21,7 +21,7 @@ IFC is a standard with a rich set of geometric primitives, with core concepts de
 | `geof:sfTouches`
 
 | Relational
-| Inferences
+| Interferences
 | `IfcRelInterferesElements`: Primarily intended for modelling clash detection outcomes and over- and underpasses in infrastructure models. Likely has seen little use in practice. 
 | `ST_Intersects`
 
