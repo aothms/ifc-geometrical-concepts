@@ -1,0 +1,193 @@
+== IFC Geometry Paradigms
+
+IFC is a standard with a rich set of geometric primitives, with core concepts defined in the geometry, presentation, material, topology and profile resource subschemas. But also outside of these modules, there are various concepts that have geometrical implications such as openings and space boundary relationships in the productextension subschema. This listing below tries to provide a comprehensive overview broken down per the categories below:
+
+- Relational; typically IfcRelationship between elements subtypes, but also clearance geometry which is a potential additional shape representation identifier
+- Product-level; resources applicable the IfcProduct such as material-based styling; openings
+- Item-level; the individual items that make up representation of the element; which are in turn potentially affected by product-level features such as openings and styling
+- Context; provides additional information on individual items such as precision, target scale and semantic use of the geometry
+- Geo-referencing;
+
+[cols="1,2,3,3",options="header"]
+|===
+| Level
+| Concept
+| Notes
+| Related terms from ISO / OGC (SFA, GeoSPARQL, GML, ...)
+
+| Relational
+| Space boundaries (connection geometry)
+| `IfcRelSpaceBoundary`: Surfaces representing adjacencies between spaces and building elements primarily intended for thermal simulation.
+| `geof:sfTouches`
+
+| Relational
+| Inferences
+| `IfcRelInterferesElements`: Primarily intended for modelling clash detection outcomes and over- and underpasses in infrastructure models. Likely has seen little use in practice. 
+| `ST_Intersects`
+
+| Relational
+| Metric constraints
+| `IfcMetric`: distances, parametric expressions between properties and geometry; supported in the schema (has limitations on indexing into unordered aggregates) and rarely used in practice.
+| `ST_Distance` `owl:sameAs` `rdfs:seeAlso`
+
+| Relational
+| Clearance geometry
+| `IfcShapeRepresentation[RepresentationIdentifier='Clearance']`: Dedicated shapes encoding minimum clearances (e.g., around equipment, maintenance envelopes, door swings); a separate representation with its own context
+| ISO 19107 constraint regions; GML: gml:Solid / gml:Surface as constraint volumes; GeoSPARQL: geometry used with sf:Disjoint / sf:Intersects etc. to test violations; SFA: volumes/areas used in constraint queries.
+
+| Product
+| Relative positioning
+| `IfcLocalPlacement` provides hierarchical local coordinate systems for products following the project decomposition structure
+| gml:AffineCS
+
+| Product
+| Linear positioning
+| `IfcLinearPlacement` provides linear positioning as a length measure along an (IfcAlignment) curve
+| ISO 19148:2021
+
+| Product
+| Grid placement
+| `IfcGridPlacement` provides placement by means of the computed intersection between two grid axes defined as curves.
+| 
+
+| Product
+| Openings
+| `IfcRelVoidsElements` + `IfcOpeningElement` models a subtractive boolean operation applied to host elements (walls, slabs, etc.); in principle extensible to other feature kinds. In IFC2X3 CoordinationView these were to be processed by the importer. In IFC4 ReferenceView in principle these are precomputed at export time.
+| `ST_Difference`
+
+| Product
+| Material association
+| `IfcRelAssociatesMaterial`, layered / list / constituent / profile-based Links product geometry to material models: layered elements, material lists, constituents, profile-based materials. Especially layered materials (IfcMaterialLayerSet[Usage]) has geometric implications because it slices the geometry with offsets along a reference curve (for vertical elements) or along the extrusion direction.
+|
+
+| Product
+| Geometry-related semantics via property sets (e.g. `Pset_MechanicalFastenerBolt`, `IfcWindowLiningProperties`)
+| Semantic parameters that can be used to drive or reconstruct geometry when explicit representations are absent.
+| 
+
+| Product
+| 'Business-logic' parametric alignment segment nesting
+| Decomposition of IfcAlignment into IfcAlignmentSegment (typically redundant with item-level curves).
+| OGC LandInfra/InfraGML alignment model
+
+| Product
+| Aggregation of product geometry: composition (`IfcElementAssembly`) / nesting (ports, alignment segments)
+| Product-level aggregation (e.g., ports, sub-elements, segments)
+| 
+
+| Item
+| Basic 0D/1D/2D items: points, curves, faces (IfcCartesianPoint, IfcPolyline, IfcCompositeCurve, IfcFace)
+| Underlying points, polylines, composite curves (including circular/arc segments), and faces used in higher-level geometry.
+| SFA: Point, LineString, MultiLineString, Polygon; GML: gml:Point, gml:Curve, gml:LineString
+
+| Item
+| Profiles: parametric / arbitrary / derived / composite (IfcProfileDef, IfcArbitraryProfileDef, IfcDerivedProfileDef, IfcCompositeProfileDef) [although not strictly an IfcRepresentationItem]
+| Cross-section definitions used by sweeps and structural members; parametric catalog profiles and arbitrary section shapes.
+|
+
+| Item
+| Annotation geometry: text literals, hatches and fills
+| `IfcTextLiteral`, `IfcFillAreaStyle` etc. 2D annotation geometry, symbolization and fills; mostly for documentation, not primary 3D model.
+|
+
+| Item
+| 3D solids and surfaces – explicit representations
+| `IfcFacetedBrep`, advanced BRep: Boundary representation of solids; faceted BReps and advanced BReps with NURBS faces.
+| SFA: PolyhedralSurface
+
+| Item
+| 3D tessellation – meshes / polyhedra
+| `IfcTessellatedFaceSet` `IfcTriangulatedFaceSet` `IfcPolygonalFaceSet` Indexed face sets representing triangulated or polygonal surfaces/solids; compact storage via point lists and indices.
+| gml:TriangulatedSurface
+
+| Item
+| TIN / surface models
+| `IfcTriangulatedIrregularNetwork` Specialized tessellated representation for terrain and horizontal surfaces (single f(X,Y)->Z for any X,Y); typical for infrastructure and terrain models.
+| gml:Tin
+
+| Item
+| Swept / procedural solids: extrusion, revolution, sweeps along curve (disk, arbitrary, fixed reference), sectioned solids and surfaces
+| 3D solids defined by sweeping profiles along vectors or curves: straight/linear extrusions, revolutions, sweeps along curves (swept disk, arbitrary orientation, fixed reference), tapered forms, sectioned solids/surfaces.
+|
+
+| Item
+| Boolean operations (CSG trees)
+| Solids defined as binary trees combining operands via union, intersection, difference; often nested and require recursive traversal.
+| SFA: ST_Union, ST_Intersection, ST_Difference
+
+| Item
+| CSG primitives
+| `IfcCsgPrimitive3D` Are only part of the CSG expressions, but include things like cylinder and sphere which are 'harder' to produce otherwise.
+|
+
+| Item
+| Surface-only geometry for connection / space boundaries and advanced face surfaces (extrusion, revolution, bounded, NURBS)
+| Surfaces used without explicit solid closure, e.g. for space boundaries or analytical/architectural surfaces.
+| gml:Surface
+
+| Item
+| Styling by item (IfcStyledItem, IfcSurfaceStyle, IfcCurveStyle, IfcIndexedColourMap)
+| Assignment of colors, line styles to geometric items or tessellated faces (per-face colors, textures).
+|
+
+| Item
+| Styling by item: Textures
+| `IfcSurfaceStyleWithTextures` and three subtypes of `IfcSurfaceTexture` for a specialization of the above with texture as a binary blob, a compressed inline literal or an external URI reference. The complexity of supporting textures is mostly related to handling and defining texture coordinates (UV) on the procedural geometries (such as sweeps and booleans). Most likely `IfcReparametrisedCompositeCurveSegment` is also intended for supporting textures so that the U space of the profile prior to extrusion can be controlled.
+|
+
+| Item
+| Mapped items / reusable definitions
+| `IfcMappedItem` and type object occurrences: Instancing and transformations: one definition, multiple placed occurrences with transforms.
+|
+
+| Item
+| (Non-)uniform scaling and mirroring
+| `IfcMappedItem` is also the only mechanism in IFC that supports scaling and mirroring.
+|
+
+| Item
+| Composite representations (IfcGeometricSet, multiple shape representation items)
+| Sets of curves, surfaces, and points combined into a single representation; multi-rep shape representations for one object.
+| gml:MultiCurve, gml:MultiSurface, gml:CompositeCurve, gml:CompositeSurface
+
+| Item
+| Topological representations for analytical structures
+| `IfcEdge` `IfcVertex` `IfcFace` `IfcTopologyRepresentation` Explicit topology (vertices, edges, faces) separate from geometry; often used in structural/analytical models.
+|
+
+| Item
+| Point clouds and coverages
+| `IfcShapeRepresentation` + `IfcCartesianPointList3D`
+|
+
+| Context
+| Representation context (IfcGeometricRepresentationContext): identifier, target scale, clearance geometries, subcontexts
+| Defines modeling context: dimensionality, precision, world coordinate system, true north, representation identifiers; may host clearance contexts.
+|
+
+| Context
+| Tolerance and precision settings
+| `IfcGeometricRepresentationContext.Precision` Model-level precision and tolerances that influence how geometry is interpreted and when elements are considered coincident. Only linear tolerance, no angular setting and no local (e.g per-vertex) possibilities.
+|
+
+| Georeferencing
+| Local engineering CRS (IfcGeometricRepresentationContext.WorldCoordinateSystem, true north)
+| Defines the local engineering coordinate system
+|
+
+| Georeferencing
+| Map/projection-based georeferencing incl. vertical reference
+| `IfcMapConversion`, `IfcProjectedCRS` Conversion from local model coordinates to a map/projected CRS; explicit link to EPSG or other CRS identifiers; since IFC4/IFC4x3.
+| ISO 19111 referencing by coordinates and transformations; SFA: SRID on geometries.
+
+| Georeferencing
+| Postal address
+| `IfcPostalAddress`, `Pset_Address`
+|
+
+| Georeferencing
+| IfcSite reference coordinates
+| `IfcSite` has DMS reference coords for latitude and longitude
+|
+
+|===
