@@ -33,55 +33,55 @@ IFC is a standard with a rich set of geometric primitives, with core concepts de
 | Relational
 | Clearance geometry
 | `IfcShapeRepresentation[RepresentationIdentifier='Clearance']`: Dedicated shapes encoding minimum clearances (e.g., around equipment, maintenance envelopes, door swings); a separate representation with its own context
-| ISO 19107 constraint regions; GML: gml:Solid / gml:Surface as constraint volumes; GeoSPARQL: geometry used with sf:Disjoint / sf:Intersects etc. to test violations; SFA: volumes/areas used in constraint queries.
+|
 
 | Product
 | Relative positioning
-| `IfcLocalPlacement` provides hierarchical local coordinate systems for products following the project decomposition structure
+| `IfcLocalPlacement` provides hierarchical local coordinate systems for products. Informal proposition are in place to define a placement hierarchy that follows the project decomposition structure
 | gml:AffineCS
 
 | Product
 | Linear positioning
-| `IfcLinearPlacement` provides linear positioning as a length measure along an (IfcAlignment) curve
+| `IfcLinearPlacement` provides linear positioning that derives an orientation and positioning frame from a length measure along an (IfcAlignment) curve
 | ISO 19148:2021
 
 | Product
 | Grid placement
-| `IfcGridPlacement` provides placement by means of the computed intersection between two grid axes defined as curves.
+| `IfcGridPlacement` provides placement by means of the computed intersection between two grid axes with underlying curve geometry
 | 
 
 | Product
 | Openings
-| `IfcRelVoidsElements` + `IfcOpeningElement` models a subtractive boolean operation applied to host elements (walls, slabs, etc.); in principle extensible to other feature kinds. In IFC2X3 CoordinationView these were to be processed by the importer. In IFC4 ReferenceView in principle these are precomputed at export time.
+| `IfcRelVoidsElements` + `IfcOpeningElement`/`IfcVoidingFeature` models a subtractive boolean operation applied to host elements (walls, slabs, etc.); in principle extensible to other feature kinds such as `IfcProjectionElement`. In IFC2X3 CoordinationView these were to be processed by the importer. In IFC4 ReferenceView, in principle, these are precomputed at export time.
 | `ST_Difference`
 
 | Product
 | Material association
-| `IfcRelAssociatesMaterial`, layered / list / constituent / profile-based Links product geometry to material models: layered elements, material lists, constituents, profile-based materials. Especially layered materials (IfcMaterialLayerSet[Usage]) has geometric implications because it slices the geometry with offsets along a reference curve (for vertical elements) or along the extrusion direction.
+| `IfcRelAssociatesMaterial`, layered / list / constituent / profile-based Links product geometry to material models: layered elements, material lists, constituents, profile-based materials. Especially layered materials (IfcMaterialLayerSet[Usage]) have geometric implications because it semantically slices the geometry by means of planes defined from offsets along a reference curve (for vertical elements) or along the extrusion direction.
 |
 
 | Product
-| Geometry-related semantics via property sets (e.g. `Pset_MechanicalFastenerBolt`, `IfcWindowLiningProperties`)
+| Parametric geometry as geometry-related semantics via property sets (e.g. `Pset_MechanicalFastenerBolt`, `IfcWindowLiningProperties`)
 | Semantic parameters that can be used to drive or reconstruct geometry when explicit representations are absent.
 | 
 
 | Product
-| 'Business-logic' parametric alignment segment nesting
-| Decomposition of IfcAlignment into IfcAlignmentSegment (typically redundant with item-level curves).
+| Product-level composite curves defining the 'business-logic' of parametric alignment segment nesting within a curve
+| Decomposition of IfcAlignment into IfcAlignmentSegment with parametric geometry (typically redundant with item-level curves).
 | OGC LandInfra/InfraGML alignment model
 
 | Product
-| Aggregation of product geometry: composition (`IfcElementAssembly`) / nesting (ports, alignment segments)
+| Aggregation of product into assemblies: composition (`IfcElementAssembly`) / nesting (ports, alignment segments)
 | Product-level aggregation (e.g., ports, sub-elements, segments)
 | 
 
 | Item
 | Basic 0D/1D/2D items: points, curves, faces (IfcCartesianPoint, IfcPolyline, IfcCompositeCurve, IfcFace)
-| Underlying points, polylines, composite curves (including circular/arc segments), and faces used in higher-level geometry.
+| Simple representations or underlying points, polylines, composite curves (including circular/arc segments), and faces used in higher-level geometry.
 | SFA: Point, LineString, MultiLineString, Polygon; GML: gml:Point, gml:Curve, gml:LineString
 
 | Item
-| Profiles: parametric / arbitrary / derived / composite (IfcProfileDef, IfcArbitraryProfileDef, IfcDerivedProfileDef, IfcCompositeProfileDef) [although not strictly an IfcRepresentationItem]
+| Profiles: parametric (e.g I shape) / arbitrary / derived / composite (IfcProfileDef, IfcArbitraryProfileDef, IfcDerivedProfileDef, IfcCompositeProfileDef) [Note: not strictly an independent IfcRepresentationItem]
 | Cross-section definitions used by sweeps and structural members; parametric catalog profiles and arbitrary section shapes.
 |
 
@@ -91,14 +91,19 @@ IFC is a standard with a rich set of geometric primitives, with core concepts de
 |
 
 | Item
-| 3D solids and surfaces – explicit representations
-| `IfcFacetedBrep`, advanced BRep: Boundary representation of solids; faceted BReps and advanced BReps with NURBS faces.
+| Explicit (BRep) representations of 3D *faceted* solids and surfaces
+| `IfcFacetedBrep`
 | SFA: PolyhedralSurface
 
 | Item
-| 3D tessellation – meshes / polyhedra
+| Explicit (BRep) representations of 3D *curved* solids and surfaces
+| Advanced BRep: with (e.g) NURBS faces (IfcAdvancedFace)
+| 
+
+| Item
+| Explicit mesh/polyhedron representations (called tessellation)
 | `IfcTessellatedFaceSet` `IfcTriangulatedFaceSet` `IfcPolygonalFaceSet` Indexed face sets representing triangulated or polygonal surfaces/solids; compact storage via point lists and indices.
-| gml:TriangulatedSurface
+| SFA: PolyhedralSurface gml:TriangulatedSurface
 
 | Item
 | TIN / surface models
@@ -107,7 +112,7 @@ IFC is a standard with a rich set of geometric primitives, with core concepts de
 
 | Item
 | Swept / procedural solids: extrusion, revolution, sweeps along curve (disk, arbitrary, fixed reference), sectioned solids and surfaces
-| 3D solids defined by sweeping profiles along vectors or curves: straight/linear extrusions, revolutions, sweeps along curves (swept disk, arbitrary orientation, fixed reference), tapered forms, sectioned solids/surfaces.
+| 3D solids defined by sweeping profiles along vectors or curves: straight/linear extrusions, revolutions, sweeps along curves (swept disk, arbitrary orientation, fixed reference), tapered forms, sectioned solids/surfaces. Note that this is a fairly large category with many items and combinatorial possibilities lumped into one.
 |
 
 | Item
@@ -117,7 +122,7 @@ IFC is a standard with a rich set of geometric primitives, with core concepts de
 
 | Item
 | CSG primitives
-| `IfcCsgPrimitive3D` Are only part of the CSG expressions, but include things like cylinder and sphere which are 'harder' to produce otherwise.
+| `IfcCsgPrimitive3D` Are only part of the CSG expressions, but include things like cylinder and sphere which are 'harder' to produce otherwise (as revolutions)
 |
 
 | Item
@@ -126,9 +131,14 @@ IFC is a standard with a rich set of geometric primitives, with core concepts de
 | gml:Surface
 
 | Item
-| Styling by item (IfcStyledItem, IfcSurfaceStyle, IfcCurveStyle, IfcIndexedColourMap)
-| Assignment of colors, line styles to geometric items or tessellated faces (per-face colors, textures).
+| Styling by item as a whole (IfcStyledItem, IfcSurfaceStyle, IfcCurveStyle)
+| Assignment of colors, line styles to geometric items or tessellated faces as a whole
 |
+
+| Item
+| Granular styling by sub-item (IfcSurfaceStyle, IfcIndexedColourMap)
+| E.g the application of a different color to a face within a shell, or per-face colors in tesselations using IfcIndexedColourMap, or retaining distinct surface styles after applying boolean operations
+| 
 
 | Item
 | Styling by item: Textures
@@ -137,7 +147,7 @@ IFC is a standard with a rich set of geometric primitives, with core concepts de
 
 | Item
 | Mapped items / reusable definitions
-| `IfcMappedItem` and type object occurrences: Instancing and transformations: one definition, multiple placed occurrences with transforms.
+| `IfcMappedItem` and type object occurrences: Instancing and transformations: one definition, multiple placed occurrences with transforms. In IFC2X3 it was not allowed to re-use the full representation as a whole, later in IFC4 that is possible.
 |
 
 | Item
@@ -146,13 +156,13 @@ IFC is a standard with a rich set of geometric primitives, with core concepts de
 |
 
 | Item
-| Composite representations (IfcGeometricSet, multiple shape representation items)
+| Composite representations (IfcGeometricSet, IfcCompositeProfileDef, multiple shape representation items)
 | Sets of curves, surfaces, and points combined into a single representation; multi-rep shape representations for one object.
 | gml:MultiCurve, gml:MultiSurface, gml:CompositeCurve, gml:CompositeSurface
 
 | Item
 | Topological representations for analytical structures
-| `IfcEdge` `IfcVertex` `IfcFace` `IfcTopologyRepresentation` Explicit topology (vertices, edges, faces) separate from geometry; often used in structural/analytical models.
+| `IfcEdge` `IfcVertex` `IfcFace` `IfcTopologyRepresentation` Explicit topology (vertices, edges, faces) as top-level items; often used in structural/analytical models.
 |
 
 | Item
